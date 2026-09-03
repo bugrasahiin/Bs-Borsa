@@ -2,8 +2,26 @@
 
 const express = require('express');
 const path = require('path');
+const fs = require('fs');
 const { analyze, kararHesapla } = require('./lib/prediction');
 const { haberGetir } = require('./lib/news');
+
+// Tarayici veri dosyasindaki listeleri sunucuda da kullan (ruh hali panosu icin).
+// Diziler JSON biciminde yazildigi icin kod calistirmadan JSON.parse ile okunur.
+const dataKodu = fs.readFileSync(path.join(__dirname, 'public', 'data.js'), 'utf8');
+function listeCoz(ad) {
+  const m = dataKodu.match(new RegExp(`const ${ad} = (\\[.*?\\]);`, 's'));
+  try {
+    return m ? JSON.parse(m[1]) : [];
+  } catch {
+    return [];
+  }
+}
+const VERI = {
+  BIST_HISSELERI: listeCoz('BIST_HISSELERI'),
+  BIST_TUMU: listeCoz('BIST_TUMU'),
+  KRIPTO_PARALAR: listeCoz('KRIPTO_PARALAR'),
+};
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -129,13 +147,19 @@ async function getChart(symbol, range = '6mo') {
   const quote = result.indicators.quote[0] || {};
   const closes = [];
   const dates = [];
+  const volumes = [];
+  const highs = [];
+  const lows = [];
   for (let i = 0; i < timestamps.length; i++) {
     const c = quote.close && quote.close[i];
     if (c == null) continue;
     closes.push(c);
     dates.push(new Date(timestamps[i] * 1000).toISOString().slice(0, 10));
+    volumes.push(quote.volume ? quote.volume[i] : null);
+    highs.push(quote.high ? quote.high[i] : null);
+    lows.push(quote.low ? quote.low[i] : null);
   }
-  return { symbol, closes, dates, meta: result.meta };
+  return { symbol, closes, dates, volumes, highs, lows, meta: result.meta };
 }
 
 app.use(
@@ -215,6 +239,7 @@ async function computePrediction(symbol, ad, haberli = false) {
   let closes;
   let changePercent = null;
   let livePrice = null;
+  let extras = {};
   if (symbol === GRAM_ALTIN) {
     const seri = await getGramAltinSeries();
     dates = seri.dates;
@@ -229,8 +254,9 @@ async function computePrediction(symbol, ad, haberli = false) {
     closes = chart.closes;
     changePercent = chart.meta ? chart.meta.regularMarketChangePercent : null;
     livePrice = chart.meta ? chart.meta.regularMarketPrice : null;
+    extras = { volumes: chart.volumes, highs: chart.highs, lows: chart.lows };
   }
-  const result = analyze(closes);
+  const result = analyze(closes, extras);
   const payload = { symbol, dates, closes, changePercent, livePrice, spark: downsample(closes), ...result };
 
   // Dunya haberlerinin tonu karara hafifce yansir (teknik analiz esas kalir).
@@ -284,6 +310,56 @@ app.get('/api/predictions', async (req, res) => {
     const { dates, closes, ...lean } = p;
     out[p.symbol] = lean;
   }
+  res.json(out);
+});
+
+const MOOD_TTL_MS = 300_000;
+
+app.get('/api/mood', async (req, res) => {
+  const hit = cache.get('mood');
+  if (hit && Date.now() - hit.time < MOOD_TTL_MS) return res.json(hit.data);
+  const liste = VERI.BIST_HISSELERI;
+  const preds = await mapLimit(liste, 10, async (h) => {
+    try {
+      return await computePrediction(h.symbol);
+    } catch {
+      return null;
+    }
+  });
+  let al = 0;
+  let tut = 0;
+  let sat = 0;
+  let sum = 0;
+  let n = 0;
+  const rows = [];
+  liste.forEach((h, i) => {
+    const p = preds[i];
+    if (!p || p.error || p.changePercent == null) return;
+    if (p.verdictKey === 'buy') al++;
+    else if (p.verdictKey === 'sell') sat++;
+    else tut++;
+    sum += p.changePercent;
+    n++;
+    rows.push({
+      symbol: h.symbol,
+      ad: h.ad,
+      changePercent: p.changePercent,
+      verdict: p.verdict,
+      verdictKey: p.verdictKey,
+    });
+  });
+  rows.sort((a, b) => b.changePercent - a.changePercent);
+  const puan = n ? Math.round(((al - sat) / n + 1) * 50) : 50;
+  const out = {
+    puan,
+    al,
+    tut,
+    sat,
+    ortDegisim: n ? sum / n : 0,
+    yukselenler: rows.slice(0, 3),
+    dusenler: rows.slice(-3).reverse(),
+  };
+  setCached('mood', out);
   res.json(out);
 });
 

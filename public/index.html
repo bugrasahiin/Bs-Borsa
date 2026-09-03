@@ -5,7 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Sevcan Şahin Özel Borsa Takip Sitesi</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📈</text></svg>" />
-  <link rel="stylesheet" href="style.css?v=8" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <meta name="theme-color" content="#0d47a1" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <link rel="stylesheet" href="style.css?v=10" />
   <script src="vendor/chart.umd.min.js"></script>
 </head>
 <body>
@@ -13,6 +17,7 @@
     <h1>📈 Sevcan Şahin Özel Borsa Takip Sitesi</h1>
     <p class="alt-baslik">Canlı piyasa verileri ve yapay zeka tahminleri</p>
     <div class="saat-kutusu">Son güncelleme: <span id="son-guncelleme">yükleniyor…</span></div>
+    <div class="durum-ciplari" id="piyasa-durum"></div>
   </header>
 
   <section id="ust-serit" class="serit" aria-label="Piyasa özeti"></section>
@@ -24,6 +29,7 @@
     <button class="sekme" data-sekme="abd">🇺🇸 ABD Hisseleri</button>
     <button class="sekme" data-sekme="kripto">₿ Kripto Paralar</button>
     <button class="sekme" data-sekme="takip">⭐ Takip Listem</button>
+    <button class="sekme" data-sekme="portfoy">💼 Portföyüm</button>
   </nav>
 
   <div class="arama-bolumu">
@@ -41,6 +47,7 @@
         dolar, euro ve altın fiyatlarının tamamı buradan, kimlik/şifre gerektirmeden ve
         yaklaşık 1 dakikada bir otomatik güncellenerek alınır.
       </div>
+      <div id="piyasa-pano" class="piyasa-pano"></div>
       <div class="kartlar" id="genel-kartlar"></div>
     </div>
     <div class="panel gizli" data-panel="bist">
@@ -73,6 +80,12 @@
       <p class="takip-durum" id="takip-durum"></p>
       <div class="kartlar" id="takip-kartlar"></div>
     </div>
+    <div class="panel gizli" data-panel="portfoy">
+      <h2>Portföyüm</h2>
+      <p class="aciklama">Sanal portföy: bir hissenin detayından "aldım" diye eklersiniz, site kâr/zararınızı canlı takip eder.</p>
+      <div id="portfoy-ozet" class="portfoy-ozet"></div>
+      <div class="kartlar" id="portfoy-kartlar"></div>
+    </div>
   </main>
 
   <div id="detay-arkaplan" class="gizli">
@@ -80,6 +93,7 @@
       <button id="detay-kapat" aria-label="Kapat">✕ Kapat</button>
       <h2 id="detay-baslik"></h2>
       <div id="detay-fiyat"></div>
+      <div id="detay-portfoy" class="portfoy-kutu"></div>
       <div class="yz-kutusu">
         <h3>🤖 Yapay Zeka Tahmini</h3>
         <div id="detay-yz"></div>
@@ -94,7 +108,7 @@
     <p><strong>Uyarı:</strong> Bu site yalnızca bilgi amaçlıdır, yatırım tavsiyesi değildir.</p>
   </footer>
 
-  <script src="data.js?v=8"></script>
-  <script src="app.js?v=8"></script>
+  <script src="data.js?v=10"></script>
+  <script src="app.js?v=10"></script>
 </body>
 </html>

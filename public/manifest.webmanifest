@@ -1,0 +1,13 @@
+{
+  "name": "Sevcan Şahin Özel Borsa Takip Sitesi",
+  "short_name": "Borsa Takip",
+  "description": "Canlı piyasa verileri ve yapay zeka tahminleri",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f2f5fa",
+  "theme_color": "#0d47a1",
+  "lang": "tr",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}
