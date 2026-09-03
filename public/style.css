@@ -1065,3 +1065,254 @@ footer strong {
   .sekme { font-size: 15px; padding: 10px 14px; }
   .kart .fiyat { font-size: 22px; }
 }
+
+/* ---------- Yardım butonu ve penceresi ---------- */
+#yardim-ac {
+  margin-top: 12px;
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 999px;
+  padding: 9px 18px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+#yardim-ac:active {
+  transform: scale(0.97);
+}
+
+#yardim-arkaplan {
+  position: fixed;
+  inset: 0;
+  background: rgba(11, 28, 58, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 60;
+  padding: 18px;
+}
+
+#yardim-arkaplan.gizli {
+  display: none;
+}
+
+#yardim-kutu {
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--golge-buyuk);
+  max-width: 640px;
+  width: 100%;
+  max-height: 86vh;
+  max-height: 86dvh;
+  overflow-y: auto;
+  padding: 22px 20px;
+  position: relative;
+}
+
+#yardim-kutu h2 {
+  margin-bottom: 14px;
+  font-size: 24px;
+}
+
+#yardim-kapat {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 8px 14px;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.yardim-liste {
+  padding-left: 22px;
+  display: grid;
+  gap: 12px;
+  font-size: 17px;
+  line-height: 1.45;
+}
+
+/* ---------- Alarm kutusu ---------- */
+.alarm-kutu {
+  margin: 14px 0;
+  background: #fff7ed;
+  border: 1px solid #fdba74;
+  border-radius: 14px;
+  padding: 14px 16px;
+}
+
+.alarm-kutu h3 {
+  font-size: 18px;
+  margin-bottom: 10px;
+  color: #9a3412;
+}
+
+.alarm-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.alarm-form input,
+.alarm-form select {
+  flex: 1 1 120px;
+  min-width: 0;
+  padding: 10px 12px;
+  font-size: 16px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fff;
+}
+
+.alarm-form button {
+  flex: 1 1 100%;
+  background: #ea580c;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 12px;
+  font-size: 17px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.alarm-satir {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  background: #fff;
+  border: 1px solid #fed7aa;
+  border-radius: 10px;
+  padding: 9px 12px;
+  margin-bottom: 8px;
+  font-size: 15px;
+}
+
+.alarm-sil {
+  background: var(--down-bg);
+  color: var(--down);
+  border: none;
+  border-radius: 8px;
+  padding: 5px 10px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.alarm-not {
+  margin-top: 8px;
+  font-size: 14px;
+  color: #9a3412;
+}
+
+/* ---------- Tost bildirimleri ---------- */
+#tost-alani {
+  position: fixed;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 80;
+  display: grid;
+  gap: 8px;
+  width: min(92vw, 480px);
+  pointer-events: none;
+}
+
+.tost {
+  background: #0b1c3a;
+  color: #fff;
+  border-left: 5px solid #f59e0b;
+  border-radius: 12px;
+  padding: 13px 16px;
+  font-size: 16px;
+  box-shadow: var(--golge-buyuk);
+  opacity: 0;
+  transform: translateY(-12px);
+  transition: opacity 0.3s, transform 0.3s;
+}
+
+.tost.gorunur {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ---------- Pozisyon butonları ---------- */
+.poz-butonlar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.poz-butonlar button {
+  flex: 1 1 45%;
+  font-size: 16px;
+  padding: 12px 10px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+#poz-ekalim {
+  background: var(--up);
+  color: #fff;
+}
+
+#poz-sil {
+  background: var(--down-bg);
+  color: var(--down);
+}
+
+/* ---------- Portföy dağılım çubuğu ---------- */
+.dagilim-kutu {
+  grid-column: 1 / -1;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--golge);
+  padding: 16px;
+}
+
+.dagilim-kutu h3 {
+  font-size: 18px;
+  margin-bottom: 10px;
+}
+
+.dagilim-cubuk {
+  display: flex;
+  height: 26px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+.dagilim-parca {
+  height: 100%;
+  min-width: 6px;
+}
+
+.dagilim-aciklama {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  margin-top: 10px;
+  font-size: 15px;
+  color: var(--muted);
+}
+
+.dagilim-oge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dagilim-nokta {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: inline-block;
+}

@@ -9,7 +9,7 @@
   <meta name="theme-color" content="#0d47a1" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <link rel="stylesheet" href="style.css?v=10" />
+  <link rel="stylesheet" href="style.css?v=11" />
   <script src="vendor/chart.umd.min.js"></script>
 </head>
 <body>
@@ -18,6 +18,7 @@
     <p class="alt-baslik">Canlı piyasa verileri ve yapay zeka tahminleri</p>
     <div class="saat-kutusu">Son güncelleme: <span id="son-guncelleme">yükleniyor…</span></div>
     <div class="durum-ciplari" id="piyasa-durum"></div>
+    <button id="yardim-ac" type="button" aria-label="Nasıl kullanılır?">❓ Nasıl Kullanılır?</button>
   </header>
 
   <section id="ust-serit" class="serit" aria-label="Piyasa özeti"></section>
@@ -94,6 +95,7 @@
       <h2 id="detay-baslik"></h2>
       <div id="detay-fiyat"></div>
       <div id="detay-portfoy" class="portfoy-kutu"></div>
+      <div id="detay-alarm" class="alarm-kutu"></div>
       <div class="yz-kutusu">
         <h3>🤖 Yapay Zeka Tahmini</h3>
         <div id="detay-yz"></div>
@@ -103,12 +105,31 @@
     </div>
   </div>
 
+  <div id="yardim-arkaplan" class="gizli">
+    <div id="yardim-kutu" role="dialog" aria-modal="true">
+      <button id="yardim-kapat" aria-label="Kapat">✕ Kapat</button>
+      <h2>❓ Nasıl Kullanılır?</h2>
+      <ol class="yardim-liste">
+        <li><strong>Fiyat öğren:</strong> Üstteki kayan şeritte dolar, altın ve borsa endeksleri; aşağıdaki kartlarda tüm hisseler vardır.</li>
+        <li><strong>Detay ve yapay zeka:</strong> Herhangi bir karta dokununca fiyat grafiği, yapay zeka tahmini (AL / TUT / SAT) ve eylem planı açılır.</li>
+        <li><strong>Yıldız ★:</strong> Sevdiğin hisselerin yıldızına dokun, "Takip Listem" sekmesinde toplanır.</li>
+        <li><strong>Portföy 💼:</strong> Detay ekranında "Kaç adet aldınız?" sorusunu cevapla, site kâr/zararını TL olarak hesaplar. Gram altını gram olarak yazabilirsin. Aynı hisseyi tekrar alırsan ortalama maliyet güncellenir.</li>
+        <li><strong>Alarm ⏰:</strong> Detay ekranında hedef fiyat yazıp "Alarm Kur" de; fiyat oraya ulaşınca ekranda uyarı çıkar.</li>
+        <li><strong>Ara 🔍:</strong> Üstteki arama kutusuna isim yaz (örn: THY, altın, Apple) hemen bulur.</li>
+        <li><strong>Cihaz değiştirme:</strong> Takip Listem sekmesindeki "Başka Cihaza Gönder" bağlantısını kendine WhatsApp'tan yolla, diğer cihazda açınca her şey geri gelir.</li>
+      </ol>
+      <p class="uyari">Bu site bilgi amaçlıdır, yatırım tavsiyesi değildir.</p>
+    </div>
+  </div>
+
+  <div id="tost-alani" aria-live="polite"></div>
+
   <footer>
     <p>Veriler yaklaşık 1 dakikada bir otomatik yenilenir. Kaynak: Yahoo Finance.</p>
     <p><strong>Uyarı:</strong> Bu site yalnızca bilgi amaçlıdır, yatırım tavsiyesi değildir.</p>
   </footer>
 
-  <script src="data.js?v=10"></script>
-  <script src="app.js?v=10"></script>
+  <script src="data.js?v=11"></script>
+  <script src="app.js?v=11"></script>
 </body>
 </html>

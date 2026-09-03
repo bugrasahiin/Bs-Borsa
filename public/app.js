@@ -89,6 +89,18 @@ function portfoyKaydet() {
   localStorage.setItem(PORTFOY_ANAHTARI, JSON.stringify(portfoy));
 }
 
+const ALARM_ANAHTARI = 'borsaAlarmlar';
+let alarmlar = [];
+try {
+  alarmlar = JSON.parse(localStorage.getItem(ALARM_ANAHTARI) || '[]');
+} catch {
+  alarmlar = [];
+}
+
+function alarmKaydet() {
+  localStorage.setItem(ALARM_ANAHTARI, JSON.stringify(alarmlar));
+}
+
 let aktifSekme = 'genel';
 let detayGrafik = null;
 let detaySembol = null;
@@ -350,6 +362,7 @@ async function detayAc(symbol, ad) {
   fiyatEl.innerHTML =
     `Son fiyat: <strong>${sayiFormatla(fiyat)} ${birim}</strong>`;
   portfoyKutuRender(fiyat, birim);
+  alarmKutuRender(fiyat);
 
   const sinyaller = t.signals
     .map((s) => `<li class="${s.positive === true ? 'yukari' : s.positive === false ? 'asagi' : ''}">${escapeHtml(s.text)}</li>`)
@@ -782,27 +795,52 @@ async function portfoyYukle() {
   const kur = kurVeri && kurVeri.livePrice != null ? kurVeri.livePrice : 1;
   let topMaliyet = 0;
   let topDeger = 0;
-  kapsayici.innerHTML = portfoy
-    .map((p) => {
-      const t = tahminler[p.symbol];
-      const fiyat = t && t.livePrice != null ? t.livePrice : t && t.indicators ? t.indicators.price : p.alis;
-      const carpan = paraBirimi(p) === '$' ? kur : 1;
-      const deger = p.adet * (fiyat || p.alis) * carpan;
-      const maliyet = p.maliyet * carpan;
-      const kar = deger - maliyet;
-      const karY = maliyet ? (kar / maliyet) * 100 : 0;
-      topMaliyet += maliyet;
-      topDeger += deger;
-      return `<div class="kart poz-kart" data-symbol="${escapeHtml(p.symbol)}" data-ad="${escapeHtml(p.ad)}">
+  const satirlar = portfoy.map((p) => {
+    const t = tahminler[p.symbol];
+    const fiyat = t && t.livePrice != null ? t.livePrice : t && t.indicators ? t.indicators.price : p.alis;
+    const carpan = paraBirimi(p) === '$' ? kur : 1;
+    const deger = p.adet * (fiyat || p.alis) * carpan;
+    const maliyet = p.maliyet * carpan;
+    const kar = deger - maliyet;
+    const karY = maliyet ? (kar / maliyet) * 100 : 0;
+    topMaliyet += maliyet;
+    topDeger += deger;
+    return { p, t, deger, kar, karY };
+  });
+  const RENKLER = ['#2563eb', '#f59e0b', '#16a34a', '#dc2626', '#7c3aed', '#0891b2', '#db2777', '#65a30d', '#ea580c', '#475569'];
+  let dagilim = '';
+  if (satirlar.length && topDeger > 0) {
+    const parcalar = satirlar
+      .map((s, i) => {
+        const pay = (s.deger / topDeger) * 100;
+        return `<span class="dagilim-parca" style="width:${pay.toFixed(1)}%;background:${RENKLER[i % RENKLER.length]}" title="${escapeHtml(s.p.ad)}: %${pay.toFixed(0)}"></span>`;
+      })
+      .join('');
+    const aciklama = satirlar
+      .map((s, i) => {
+        const pay = (s.deger / topDeger) * 100;
+        return `<span class="dagilim-oge"><span class="dagilim-nokta" style="background:${RENKLER[i % RENKLER.length]}"></span>${escapeHtml(s.p.ad)} %${pay.toFixed(0)}</span>`;
+      })
+      .join('');
+    dagilim = `
+      <div class="dagilim-kutu">
+        <h3>🥧 Dağılım</h3>
+        <div class="dagilim-cubuk">${parcalar}</div>
+        <div class="dagilim-aciklama">${aciklama}</div>
+      </div>`;
+  }
+  kapsayici.innerHTML =
+    dagilim +
+    satirlar
+      .map(({ p, t, deger, kar, karY }) => `<div class="kart poz-kart" data-symbol="${escapeHtml(p.symbol)}" data-ad="${escapeHtml(p.ad)}">
         <div class="ad">${escapeHtml(p.ad)}</div>
         <div class="sembol">${sayiFormatla(p.adet, 4)} ${adetBirimi(p.symbol)} • Alış: ${sayiFormatla(p.alis)} ${paraBirimi(p)}</div>
         <div class="fiyat">${sayiFormatla(deger)} ₺</div>
         <div class="degisim ${kar >= 0 ? 'yukari' : 'asagi'}">${kar >= 0 ? '+' : ''}${sayiFormatla(kar, 2)} ₺ (%${karY >= 0 ? '+' : ''}${sayiFormatla(karY, 2)})</div>
         <div class="yz-rozet ${t && t.verdictKey ? `rozet-${t.verdictKey}` : 'rozet-bekliyor'}">🤖 YZ: ${t && t.verdict ? t.verdict : '…'}</div>
         <button class="poz-sil-kart" data-symbol="${escapeHtml(p.symbol)}">🗑 Çıkar</button>
-      </div>`;
-    })
-    .join('');
+      </div>`)
+      .join('');
   const tKar = topDeger - topMaliyet;
   const tY = topMaliyet ? (tKar / topMaliyet) * 100 : 0;
   ozet.innerHTML = `
@@ -811,7 +849,7 @@ async function portfoyYukle() {
     <div class="gosterge ${tKar >= 0 ? 'poz-kar' : 'poz-zarar'}"><span>Toplam kâr/zarar</span><strong>${tKar >= 0 ? '+' : ''}${sayiFormatla(tKar, 2)} ₺ (%${tY >= 0 ? '+' : ''}${sayiFormatla(tY, 2)})</strong></div>`;
 }
 
-async function portfoyKutuRender(fiyat, birim) {
+async function portfoyKutuRender(fiyat, birim, mod) {
   const el = document.getElementById('detay-portfoy');
   if (!el || !detaySembol) return;
   let kur = 1;
@@ -824,45 +862,63 @@ async function portfoyKutuRender(fiyat, birim) {
     }
   }
   const poz = portfoy.find((p) => p.symbol === detaySembol);
-  if (poz) {
+  if (poz && mod !== 'ekle') {
     const degerTL = poz.adet * fiyat * kur;
     const maliyetTL = poz.maliyet * kur;
     const kar = degerTL - maliyetTL;
     const karY = maliyetTL ? (kar / maliyetTL) * 100 : 0;
     el.innerHTML = `
       <h3>💼 Portföyünüzde</h3>
-      <p>${sayiFormatla(poz.adet, 4)} ${adetBirimi(poz.symbol)} • Alış: ${sayiFormatla(poz.alis)} ${birim || paraBirimi(poz)}</p>
+      <p>${sayiFormatla(poz.adet, 4)} ${adetBirimi(poz.symbol)} • Ortalama alış: ${sayiFormatla(poz.alis)} ${birim || paraBirimi(poz)}</p>
       <p class="${kar >= 0 ? 'yukari' : 'asagi'}"><strong>${kar >= 0 ? '+' : ''}${sayiFormatla(kar, 2)} ₺ (%${karY >= 0 ? '+' : ''}${sayiFormatla(karY, 2)})</strong></p>
-      <button id="poz-sil" type="button">🗑 Portföyden Çıkar</button>`;
+      <div class="poz-butonlar">
+        <button id="poz-ekalim" type="button">➕ Ek Alım Yap</button>
+        <button id="poz-sil" type="button">🗑 Portföyden Çıkar</button>
+      </div>`;
   } else {
+    const birlestir = !!poz;
     el.innerHTML = `
-      <h3>💼 Portföyüme Ekle</h3>
-      <div class="portfoy-form">
+      <h3>${birlestir ? '➕ Ek Alım (Ortalamaya Ekle)' : '💼 Portföyüme Ekle'}</h3>
+      ${birlestir ? `<p class="poz-onizleme">Mevcut: ${sayiFormatla(poz.adet, 4)} ${adetBirimi(poz.symbol)}, ortalama ${sayiFormatla(poz.alis)} ${birim || paraBirimi(poz)}</p>` : ''}
+      <div class="portfoy-form" ${birlestir ? 'data-birlestir="1"' : ''}>
         <label>Kaç ${adetBirimi(detaySembol)} aldınız?<input id="poz-adet" type="number" inputmode="decimal" min="0" step="any" value="10" /></label>
         <label>Alış fiyatı (${birim || '₺'})<input id="poz-alis" type="number" inputmode="decimal" min="0" step="any" value="${fiyat}" /></label>
       </div>
       <p id="poz-onizleme" class="poz-onizleme"></p>
-      <button id="poz-ekle" type="button">➕ Aldım, Portföyüme Ekle</button>`;
+      <button id="poz-ekle" type="button">${birlestir ? '➕ Aldım, Ortalamaya Ekle' : '➕ Aldım, Portföyüme Ekle'}</button>`;
   }
 }
 
 document.getElementById('detay-portfoy').addEventListener('click', (e) => {
   const birim = paraBirimi({ symbol: detaySembol });
+  const fiyat = parseFloat(document.getElementById('detay-fiyat').dataset.fiyat) || 0;
+  if (e.target.id === 'poz-ekalim') {
+    portfoyKutuRender(fiyat || 0, birim, 'ekle');
+    return;
+  }
   if (e.target.id === 'poz-ekle') {
     const adet = parseFloat(document.getElementById('poz-adet').value);
     const alis = parseFloat(document.getElementById('poz-alis').value);
     if (!adet || !alis || alis <= 0) return;
-    portfoy.push({ symbol: detaySembol, ad: detayAd, adet, alis, maliyet: adet * alis, tarih: Date.now() });
+    const birlestir = !!document.querySelector('#detay-portfoy .portfoy-form[data-birlestir="1"]');
+    if (birlestir) {
+      const poz = portfoy.find((p) => p.symbol === detaySembol);
+      if (poz) {
+        poz.maliyet += adet * alis;
+        poz.adet += adet;
+        poz.alis = poz.maliyet / poz.adet;
+        poz.tarih = Date.now();
+      }
+    } else {
+      portfoy.push({ symbol: detaySembol, ad: detayAd, adet, alis, maliyet: adet * alis, tarih: Date.now() });
+    }
     portfoyKaydet();
     portfoyKutuRender(alis, birim);
   }
   if (e.target.id === 'poz-sil') {
     portfoy = portfoy.filter((p) => p.symbol !== detaySembol);
     portfoyKaydet();
-    portfoyKutuRender(
-      parseFloat(document.getElementById('detay-fiyat').dataset.fiyat) || 0,
-      birim
-    );
+    portfoyKutuRender(fiyat, birim);
   }
 });
 
@@ -887,6 +943,114 @@ document.getElementById('portfoy-kartlar').addEventListener('click', (e) => {
   }
   const kart = e.target.closest('.kart');
   if (kart) detayAc(kart.dataset.symbol, kart.dataset.ad);
+});
+
+/* ---------- Fiyat alarmları ---------- */
+function alarmKutuRender(fiyat) {
+  const el = document.getElementById('detay-alarm');
+  if (!el || !detaySembol) return;
+  const birim = paraBirimi({ symbol: detaySembol });
+  const aktif = alarmlar.filter((a) => a.symbol === detaySembol);
+  const liste = aktif.length
+    ? aktif
+        .map(
+          (a, i) =>
+            `<div class="alarm-satir">
+              <span>${a.yon === 'ust' ? '🔼' : '🔽'} ${sayiFormatla(a.hedef)} ${birim} ${a.yon === 'ust' ? 'üzerine çıkınca' : 'altına inince'} haber ver</span>
+              <button class="alarm-sil" data-idx="${alarmlar.indexOf(a)}">✕</button>
+            </div>`
+        )
+        .join('')
+    : '';
+  el.innerHTML = `
+    <h3>⏰ Fiyat Alarmı</h3>
+    ${liste}
+    <div class="alarm-form">
+      <input id="alarm-hedef" type="number" inputmode="decimal" min="0" step="any" value="${fiyat}" aria-label="Hedef fiyat" />
+      <select id="alarm-yon" aria-label="Yön">
+        <option value="ust">Bu fiyata çıkınca 🔼</option>
+        <option value="alt">Bu fiyata inince 🔽</option>
+      </select>
+      <button id="alarm-kur" type="button">🔔 Alarm Kur</button>
+    </div>
+    <p class="alarm-not">Site açıkken fiyat hedefe ulaşınca ekranda uyarı çıkar.</p>`;
+}
+
+function alarmTost(mesaj) {
+  const alan = document.getElementById('tost-alani');
+  const t = document.createElement('div');
+  t.className = 'tost';
+  t.textContent = mesaj;
+  alan.appendChild(t);
+  setTimeout(() => t.classList.add('gorunur'), 30);
+  setTimeout(() => {
+    t.classList.remove('gorunur');
+    setTimeout(() => t.remove(), 400);
+  }, 8000);
+}
+
+async function alarmKontrol() {
+  const bekleyen = alarmlar.filter((a) => !a.tetiklendi);
+  if (!bekleyen.length) return;
+  let quotes;
+  try {
+    quotes = await apiGet(
+      `/api/quote?symbols=${encodeURIComponent(bekleyen.map((a) => a.symbol).join(','))}`
+    );
+  } catch {
+    return;
+  }
+  const map = {};
+  quotes.forEach((q) => (map[q.symbol] = q));
+  let degisti = false;
+  for (const a of bekleyen) {
+    const q = map[a.symbol];
+    if (!q || q.regularMarketPrice == null) continue;
+    const vurdu = a.yon === 'ust' ? q.regularMarketPrice >= a.hedef : q.regularMarketPrice <= a.hedef;
+    if (!vurdu) continue;
+    a.tetiklendi = true;
+    degisti = true;
+    const mesaj = `🔔 ${a.ad} hedefe ulaştı! ${a.yon === 'ust' ? 'Yükseldi' : 'İndi'}: ${sayiFormatla(q.regularMarketPrice)} (hedef: ${sayiFormatla(a.hedef)})`;
+    alarmTost(mesaj);
+    if ('Notification' in window && Notification.permission === 'granted') {
+      try {
+        new Notification('Borsa Takip Alarmı', { body: mesaj });
+      } catch {
+        // bazi tarayicilar bildirimi desteklemiyor; tost yeterli
+      }
+    }
+  }
+  if (degisti) {
+    alarmKaydet();
+    alarmlar = alarmlar.filter((a) => !a.tetiklendi);
+    alarmKaydet();
+    if (detaySembol && !document.getElementById('detay-arkaplan').classList.contains('gizli')) {
+      const fiyat = parseFloat(document.getElementById('detay-fiyat').dataset.fiyat) || 0;
+      alarmKutuRender(fiyat);
+    }
+  }
+}
+
+document.getElementById('detay-alarm').addEventListener('click', (e) => {
+  if (e.target.id === 'alarm-kur') {
+    const hedef = parseFloat(document.getElementById('alarm-hedef').value);
+    const yon = document.getElementById('alarm-yon').value;
+    if (!hedef || hedef <= 0) return;
+    alarmlar.push({ symbol: detaySembol, ad: detayAd, hedef, yon, tarih: Date.now() });
+    alarmKaydet();
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+    const fiyat = parseFloat(document.getElementById('detay-fiyat').dataset.fiyat) || hedef;
+    alarmKutuRender(fiyat);
+  }
+  const sil = e.target.closest('.alarm-sil');
+  if (sil) {
+    alarmlar.splice(parseInt(sil.dataset.idx, 10), 1);
+    alarmKaydet();
+    const fiyat = parseFloat(document.getElementById('detay-fiyat').dataset.fiyat) || 0;
+    alarmKutuRender(fiyat);
+  }
 });
 
 /* ---------- Olaylar ---------- */
@@ -930,6 +1094,16 @@ document.getElementById('detay-arkaplan').addEventListener('click', (e) => {
   if (e.target.id === 'detay-arkaplan') document.getElementById('detay-arkaplan').classList.add('gizli');
 });
 
+document.getElementById('yardim-ac').addEventListener('click', () => {
+  document.getElementById('yardim-arkaplan').classList.remove('gizli');
+});
+document.getElementById('yardim-kapat').addEventListener('click', () => {
+  document.getElementById('yardim-arkaplan').classList.add('gizli');
+});
+document.getElementById('yardim-arkaplan').addEventListener('click', (e) => {
+  if (e.target.id === 'yardim-arkaplan') document.getElementById('yardim-arkaplan').classList.add('gizli');
+});
+
 /* ---------- Başlat ---------- */
 if (location.hash.startsWith('#l=')) {
   const sonuc = listeIceAktar(location.hash);
@@ -943,9 +1117,11 @@ seritGuncelle();
 aktifPaneliYukle();
 durumGuncelle();
 panoGuncelle();
+alarmKontrol();
 setInterval(() => {
   seritGuncelle();
   aktifPaneliYukle();
   durumGuncelle();
   panoGuncelle();
+  alarmKontrol();
 }, 60_000);
