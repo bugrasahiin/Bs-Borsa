@@ -538,6 +538,38 @@ main {
   vertical-align: 1px;
 }
 
+.haber-tarih {
+  display: inline-block;
+  margin-right: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+  background: #eef2f7;
+  border-radius: 6px;
+  padding: 2px 8px;
+  vertical-align: 1px;
+}
+
+.plan-kutusu {
+  margin-top: 16px;
+  background: #eefaf3;
+  border: 1px solid #b5e5cd;
+  border-radius: 16px;
+  padding: 16px;
+}
+
+.plan-kutusu h3 {
+  font-size: 20px;
+  font-weight: 800;
+  margin-bottom: 8px;
+}
+
+.plan-kutusu p {
+  font-size: 17px;
+  line-height: 1.55;
+  margin-bottom: 6px;
+}
+
 .grafik-kutusu {
   margin-top: 18px;
   height: 340px;

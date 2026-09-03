@@ -186,7 +186,7 @@ app.get('/api/prediction', async (req, res) => {
 });
 
 const PREDICTION_TTL_MS = 300_000;
-const HABER_TTL_MS = 600_000;
+const HABER_TTL_MS = 300_000;
 
 async function haberCached(symbol, ad) {
   const key = `haber:${symbol}`;

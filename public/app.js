@@ -123,6 +123,16 @@ function degisimMetni(yuzde) {
   return `${ok} %${sayiFormatla(Math.abs(yuzde), 2)}`;
 }
 
+function zamanEtiketi(z) {
+  if (!z) return '';
+  const fark = Date.now() - z;
+  const saat = 3600000;
+  if (fark < saat) return `${Math.max(1, Math.round(fark / 60000))} dk önce`;
+  if (fark < 24 * saat) return `${Math.round(fark / saat)} saat önce`;
+  if (fark < 60 * 24 * saat) return `${Math.round(fark / (24 * saat))} gün önce`;
+  return new Date(z).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long' });
+}
+
 async function apiGet(url) {
   const res = await fetch(url);
   if (!res.ok) throw new Error('Sunucudan veri alınamadı');
@@ -285,7 +295,7 @@ async function detayAc(symbol, ad) {
       .slice(0, 6)
       .map(
         (h) =>
-          `<li><span class="haber-kaynak">${escapeHtml(h.kaynak || 'Haber')}</span>${escapeHtml(h.baslik)}</li>`
+          `<li><span class="haber-kaynak">${escapeHtml(h.kaynak || 'Haber')}</span><span class="haber-tarih">${escapeHtml(zamanEtiketi(h.zaman))}</span>${escapeHtml(h.baslik)}</li>`
       )
       .join('');
     haberBolumu = `
@@ -296,11 +306,22 @@ async function detayAc(symbol, ad) {
       </div>`;
   }
 
+  let planBolumu = '';
+  if (t.plan) {
+    planBolumu = `
+      <div class="plan-kutusu">
+        <h3>🎯 Eylem Planı</h3>
+        <p>${escapeHtml(t.plan.kisa)}</p>
+        <p>${escapeHtml(t.plan.uzun)}</p>
+      </div>`;
+  }
+
   yzEl.innerHTML = `
     <div class="yz-karar ${t.verdictKey === 'buy' ? 'yukari' : t.verdictKey === 'sell' ? 'asagi' : ''}">${escapeHtml(t.verdict)} (Puan: ${t.score}/100)</div>
     <p class="yz-ozet">${escapeHtml(t.summary)}</p>
     <ul class="yz-sinyaller">${sinyaller}</ul>
     <div class="yz-guven">Güven düzeyi: %${t.confidence}</div>
+    ${planBolumu}
     ${haberBolumu}`;
 
   grafikCiz(t);
