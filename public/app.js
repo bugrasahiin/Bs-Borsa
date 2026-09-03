@@ -348,6 +348,7 @@ function suruklemeKaydir(el) {
   let kaydirildi = false;
 
   el.addEventListener('pointerdown', (e) => {
+    if (e.pointerType !== 'mouse') return; // dokunmatikte dogal kaydirma calissin
     surukluyor = true;
     kaydirildi = false;
     basX = e.clientX;
