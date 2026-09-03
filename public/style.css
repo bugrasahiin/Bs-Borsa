@@ -23,10 +23,6 @@
   padding: 0;
 }
 
-html {
-  scroll-behavior: smooth;
-}
-
 body {
   font-family: "Segoe UI", "Inter", system-ui, -apple-system, Arial, sans-serif;
   font-size: 18px;
