@@ -351,6 +351,18 @@ main {
 .rozet-sell { background: linear-gradient(135deg, #dc2626, #ef4444); box-shadow: 0 6px 14px -6px rgba(239, 68, 68, 0.55); }
 .rozet-bekliyor { background: #94a3b8; }
 
+.neden {
+  margin-top: 8px;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--muted);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-height: 20px;
+}
+
 .yildiz {
   position: absolute;
   top: 12px;
@@ -478,6 +490,52 @@ main {
   font-size: 16px;
   font-weight: 700;
   color: var(--muted);
+}
+
+.haber-kutusu {
+  margin-top: 16px;
+  background: #fffdf5;
+  border: 1px solid #f0e3bd;
+  border-radius: 16px;
+  padding: 16px;
+}
+
+.haber-kutusu h3 {
+  font-size: 20px;
+  font-weight: 800;
+  margin-bottom: 8px;
+}
+
+.haber-ozet {
+  font-size: 17px;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.haber-liste {
+  list-style: none;
+  padding: 0;
+}
+
+.haber-liste li {
+  font-size: 15px;
+  line-height: 1.5;
+  padding: 8px 0;
+  border-top: 1px dashed #e5d9b5;
+}
+
+.haber-kaynak {
+  display: inline-block;
+  margin-right: 8px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: #6b5b1e;
+  background: #f7ecd0;
+  border-radius: 6px;
+  padding: 2px 8px;
+  vertical-align: 1px;
 }
 
 .grafik-kutusu {

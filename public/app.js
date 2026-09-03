@@ -169,6 +169,7 @@ function kartOlustur(item, takipGosterilsin) {
     <div class="fiyat">yükleniyor…</div>
     <div class="degisim"></div>
     <div class="yz-rozet rozet-bekliyor">🤖 YZ: hesaplanıyor…</div>
+    <div class="neden"></div>
   </div>`;
 }
 
@@ -225,6 +226,7 @@ async function aktifPaneliYukle() {
         degisimEl.className = `degisim ${degisimSinifi(yuzde)}`;
         rozet.textContent = `🤖 YZ: ${t.verdict}`;
         rozet.className = `yz-rozet rozet-${t.verdictKey}`;
+        kart.querySelector('.neden').textContent = t.neden || '';
       });
     } catch {
       parca.forEach((item) => {
@@ -258,7 +260,7 @@ async function detayAc(symbol, ad) {
 
   let t;
   try {
-    t = await apiGet(`/api/prediction?symbol=${encodeURIComponent(symbol)}`);
+    t = await apiGet(`/api/prediction?symbol=${encodeURIComponent(symbol)}&ad=${encodeURIComponent(ad)}`);
   } catch {
     yzEl.innerHTML = '<p>Veri alınamadı. İnternet bağlantınızı kontrol edin.</p>';
     return;
@@ -277,11 +279,29 @@ async function detayAc(symbol, ad) {
     .map((s) => `<li class="${s.positive === true ? 'yukari' : s.positive === false ? 'asagi' : ''}">${escapeHtml(s.text)}</li>`)
     .join('');
 
+  let haberBolumu = '';
+  if (t.haber && t.haber.haberler && t.haber.haberler.length) {
+    const liste = t.haber.haberler
+      .slice(0, 6)
+      .map(
+        (h) =>
+          `<li><span class="haber-kaynak">${escapeHtml(h.kaynak || 'Haber')}</span>${escapeHtml(h.baslik)}</li>`
+      )
+      .join('');
+    haberBolumu = `
+      <div class="haber-kutusu">
+        <h3>📰 Dünya Haberleri Yorumu</h3>
+        <p class="haber-ozet">${escapeHtml(t.haber.yorum)}</p>
+        <ul class="haber-liste">${liste}</ul>
+      </div>`;
+  }
+
   yzEl.innerHTML = `
     <div class="yz-karar ${t.verdictKey === 'buy' ? 'yukari' : t.verdictKey === 'sell' ? 'asagi' : ''}">${escapeHtml(t.verdict)} (Puan: ${t.score}/100)</div>
     <p class="yz-ozet">${escapeHtml(t.summary)}</p>
     <ul class="yz-sinyaller">${sinyaller}</ul>
-    <div class="yz-guven">Güven düzeyi: %${t.confidence}</div>`;
+    <div class="yz-guven">Güven düzeyi: %${t.confidence}</div>
+    ${haberBolumu}`;
 
   grafikCiz(t);
 }

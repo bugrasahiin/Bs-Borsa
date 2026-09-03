@@ -2,7 +2,8 @@
 
 const express = require('express');
 const path = require('path');
-const { analyze } = require('./lib/prediction');
+const { analyze, kararHesapla } = require('./lib/prediction');
+const { haberGetir } = require('./lib/news');
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -174,9 +175,10 @@ app.get('/api/chart', async (req, res) => {
 
 app.get('/api/prediction', async (req, res) => {
   const symbol = (req.query.symbol || '').trim();
+  const ad = (req.query.ad || '').trim();
   if (!symbol) return res.status(400).json({ error: 'symbol parametresi gerekli' });
   try {
-    const payload = await computePrediction(symbol);
+    const payload = await computePrediction(symbol, ad, true);
     res.json(payload);
   } catch (err) {
     res.status(502).json({ error: err.message });
@@ -184,9 +186,19 @@ app.get('/api/prediction', async (req, res) => {
 });
 
 const PREDICTION_TTL_MS = 300_000;
+const HABER_TTL_MS = 600_000;
 
-async function computePrediction(symbol) {
-  const cacheKey = `prediction:${symbol}`;
+async function haberCached(symbol, ad) {
+  const key = `haber:${symbol}`;
+  const hit = cache.get(key);
+  if (hit && Date.now() - hit.time < HABER_TTL_MS) return hit.data;
+  const haber = await haberGetir(symbol, ad);
+  cache.set(key, { data: haber, time: Date.now() });
+  return haber;
+}
+
+async function computePrediction(symbol, ad, haberli = false) {
+  const cacheKey = `prediction:${haberli ? 'haberli:' : ''}${symbol}`;
   const hit = cache.get(cacheKey);
   if (hit && Date.now() - hit.time < PREDICTION_TTL_MS) return hit.data;
   let dates;
@@ -207,6 +219,33 @@ async function computePrediction(symbol) {
   }
   const result = analyze(closes);
   const payload = { symbol, dates, closes, changePercent, ...result };
+
+  // Dunya haberlerinin tonu karara hafifce yansir (teknik analiz esas kalir).
+  if (haberli && !payload.error) {
+    try {
+      const haber = await haberCached(symbol, ad);
+      if (haber) {
+        payload.haber = haber;
+        const etki = Math.round(haber.puan * 0.15);
+        if (etki) {
+          payload.score = Math.max(0, Math.min(100, payload.score + etki));
+          const k = kararHesapla(payload.score);
+          payload.verdict = k.verdict;
+          payload.verdictKey = k.verdictKey;
+          payload.signals = [
+            ...payload.signals,
+            {
+              text: `Dünya haberlerinin tonu ${haber.ton} (${haber.yorum}) Karara etkisi: ${etki > 0 ? '+' : ''}${etki} puan.`,
+              positive: etki > 0 ? true : etki < 0 ? false : null,
+            },
+          ];
+        }
+      }
+    } catch {
+      // haber alinamazsa teknik analiz tek basina yeterli
+    }
+  }
+
   if (!payload.error) setCached(cacheKey, payload);
   return payload;
 }
