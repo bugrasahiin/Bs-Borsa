@@ -185,6 +185,16 @@ app.get('/api/prediction', async (req, res) => {
   }
 });
 
+// Kartlardaki mini grafik icin son kapanislari seyrelt.
+function downsample(values, target = 24) {
+  if (values.length <= target) return values.slice();
+  const out = [];
+  for (let i = 0; i < target; i++) {
+    out.push(values[Math.round((i * (values.length - 1)) / (target - 1))]);
+  }
+  return out;
+}
+
 const PREDICTION_TTL_MS = 300_000;
 const HABER_TTL_MS = 300_000;
 
@@ -221,7 +231,7 @@ async function computePrediction(symbol, ad, haberli = false) {
     livePrice = chart.meta ? chart.meta.regularMarketPrice : null;
   }
   const result = analyze(closes);
-  const payload = { symbol, dates, closes, changePercent, livePrice, ...result };
+  const payload = { symbol, dates, closes, changePercent, livePrice, spark: downsample(closes), ...result };
 
   // Dunya haberlerinin tonu karara hafifce yansir (teknik analiz esas kalir).
   if (haberli && !payload.error) {

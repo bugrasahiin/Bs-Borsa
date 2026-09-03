@@ -123,6 +123,23 @@ function degisimMetni(yuzde) {
   return `${ok} %${sayiFormatla(Math.abs(yuzde), 2)}`;
 }
 
+function sparkCiz(closes) {
+  if (!Array.isArray(closes) || closes.length < 2) return '';
+  const w = 120;
+  const h = 36;
+  const min = Math.min(...closes);
+  const max = Math.max(...closes);
+  const span = max - min || 1;
+  const pts = closes
+    .map(
+      (v, i) =>
+        `${((i / (closes.length - 1)) * w).toFixed(1)},${(h - 3 - ((v - min) / span) * (h - 6)).toFixed(1)}`
+    )
+    .join(' ');
+  const renk = closes[closes.length - 1] >= closes[0] ? '#16a34a' : '#dc2626';
+  return `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><polyline points="${pts}" fill="none" stroke="${renk}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" /></svg>`;
+}
+
 function zamanEtiketi(z) {
   if (!z) return '';
   const fark = Date.now() - z;
@@ -178,6 +195,7 @@ function kartOlustur(item, takipGosterilsin) {
     <div class="sembol">${escapeHtml(item.symbol.replace('.IS', ''))}</div>
     <div class="fiyat">yükleniyor…</div>
     <div class="degisim"></div>
+    <div class="spark" aria-hidden="true"></div>
     <div class="yz-rozet rozet-bekliyor">🤖 YZ: hesaplanıyor…</div>
     <div class="neden"></div>
   </div>`;
@@ -237,6 +255,8 @@ async function aktifPaneliYukle() {
         rozet.textContent = `🤖 YZ: ${t.verdict}`;
         rozet.className = `yz-rozet rozet-${t.verdictKey}`;
         kart.querySelector('.neden').textContent = t.neden || '';
+        const sparkEl = kart.querySelector('.spark');
+        if (sparkEl) sparkEl.innerHTML = sparkCiz(t.spark);
       });
     } catch {
       parca.forEach((item) => {
@@ -311,6 +331,40 @@ async function detayAc(symbol, ad) {
     .map((s) => `<li class="${s.positive === true ? 'yukari' : s.positive === false ? 'asagi' : ''}">${escapeHtml(s.text)}</li>`)
     .join('');
 
+  const ind = t.indicators || {};
+  const gostergeler = [
+    ['RSI (14)', ind.rsi != null ? ind.rsi.toFixed(0) : '—'],
+    ['Bollinger %B', ind.bollinger != null ? `%${(ind.bollinger * 100).toFixed(0)}` : '—'],
+    ['Stokastik', ind.stochastic != null ? ind.stochastic.toFixed(0) : '—'],
+    ['Momentum (20g)', ind.momentum20 != null ? `%${ind.momentum20.toFixed(1)}` : '—'],
+    ['Destek (2 ay)', ind.destek != null ? sayiFormatla(ind.destek) : '—'],
+    ['Direnç (2 ay)', ind.direnc != null ? sayiFormatla(ind.direnc) : '—'],
+  ];
+  const gostergeBolumu = `
+    <div class="gosterge-izgara">
+      ${gostergeler
+        .map(([gAd, gVal]) => `<div class="gosterge"><span>${gAd}</span><strong>${gVal}</strong></div>`)
+        .join('')}
+    </div>`;
+
+  let aralikBolumu = '';
+  if (ind.donemDusuk != null && ind.donemYuksek != null && ind.donemYuksek > ind.donemDusuk) {
+    const konum = Math.max(
+      0,
+      Math.min(100, Math.round(((fiyat - ind.donemDusuk) / (ind.donemYuksek - ind.donemDusuk)) * 100))
+    );
+    aralikBolumu = `
+      <div class="aralik-kutu">
+        <h3>📏 6 Aylık Aralık</h3>
+        <div class="aralik-cubuk"><span class="aralik-isaret" style="left:${konum}%"></span></div>
+        <div class="aralik-etiket">
+          <span>Dip: ${sayiFormatla(ind.donemDusuk)}</span>
+          <span>Konum: %${konum}</span>
+          <span>Zirve: ${sayiFormatla(ind.donemYuksek)}</span>
+        </div>
+      </div>`;
+  }
+
   let haberBolumu = '';
   if (t.haber && t.haber.haberler && t.haber.haberler.length) {
     const liste = t.haber.haberler
@@ -343,6 +397,8 @@ async function detayAc(symbol, ad) {
     <p class="yz-ozet">${escapeHtml(t.summary)}</p>
     <ul class="yz-sinyaller">${sinyaller}</ul>
     <div class="yz-guven">Güven düzeyi: %${t.confidence}</div>
+    ${gostergeBolumu}
+    ${aralikBolumu}
     ${planBolumu}
     ${haberBolumu}`;
 
@@ -357,9 +413,14 @@ function grafikCiz(t) {
   const gercek = [...t.closes];
   const tahmin = new Array(t.closes.length - 1).fill(null);
   tahmin.push(t.closes[t.closes.length - 1]);
-  t.forecast.forEach((v, i) => {
+  const ustBant = new Array(t.closes.length).fill(null);
+  const altBant = new Array(t.closes.length).fill(null);
+  const fv = (t.forecast && t.forecast.values) || [];
+  fv.forEach((v, i) => {
     etiketler.push(`Tahmin ${i + 1}. gün`);
     tahmin.push(v);
+    ustBant.push(t.forecast.upper[i]);
+    altBant.push(t.forecast.lower[i]);
   });
 
   detayGrafik = new Chart(canvas, {
@@ -385,13 +446,36 @@ function grafikCiz(t) {
           tension: 0.2,
           fill: false,
         },
+        {
+          label: 'Güven bandı',
+          data: ustBant,
+          borderColor: 'transparent',
+          backgroundColor: 'rgba(224,138,0,0.13)',
+          fill: '+1',
+          pointRadius: 0,
+          tension: 0.2,
+        },
+        {
+          label: 'Güven bandı alt',
+          data: altBant,
+          borderColor: 'transparent',
+          backgroundColor: 'rgba(224,138,0,0.13)',
+          fill: false,
+          pointRadius: 0,
+          tension: 0.2,
+        },
       ],
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
       plugins: {
-        legend: { labels: { font: { size: 16 } } },
+        legend: {
+          labels: {
+            font: { size: 16 },
+            filter: (item) => !String(item.text).includes('band'),
+          },
+        },
       },
       scales: {
         x: { ticks: { font: { size: 12 }, maxTicksLimit: 10 } },
