@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Borsa Takip — Canlı Borsa ve Yapay Zeka Tahminleri</title>
+  <title>Sevcan Şahin Özel Borsa Takip Sitesi</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📈</text></svg>" />
-  <link rel="stylesheet" href="style.css?v=6" />
+  <link rel="stylesheet" href="style.css?v=7" />
   <script src="vendor/chart.umd.min.js"></script>
 </head>
 <body>
   <header>
-    <h1>📈 Borsa Takip</h1>
+    <h1>📈 Sevcan Şahin Özel Borsa Takip Sitesi</h1>
     <p class="alt-baslik">Canlı piyasa verileri ve yapay zeka tahminleri</p>
     <div class="saat-kutusu">Son güncelleme: <span id="son-guncelleme">yükleniyor…</span></div>
   </header>
@@ -66,6 +66,11 @@
     <div class="panel gizli" data-panel="takip">
       <h2>Takip Listem</h2>
       <p class="aciklama" id="takip-aciklama">Burada sadece takip ettiğiniz hisseler görünür.</p>
+      <div class="takip-araclar">
+        <button id="liste-paylas" type="button">📤 Başka Cihaza Gönder</button>
+        <button id="liste-aktar" type="button">📥 Başka Cihazdan Getir</button>
+      </div>
+      <p class="takip-durum" id="takip-durum"></p>
       <div class="kartlar" id="takip-kartlar"></div>
     </div>
   </main>
@@ -89,7 +94,7 @@
     <p><strong>Uyarı:</strong> Bu site yalnızca bilgi amaçlıdır, yatırım tavsiyesi değildir.</p>
   </footer>
 
-  <script src="data.js?v=6"></script>
-  <script src="app.js?v=6"></script>
+  <script src="data.js?v=7"></script>
+  <script src="app.js?v=7"></script>
 </body>
 </html>

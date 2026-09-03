@@ -229,7 +229,7 @@ async function aktifPaneliYukle() {
           rozet.className = 'yz-rozet rozet-bekliyor';
           return;
         }
-        const fiyat = t.indicators.price;
+        const fiyat = t.livePrice ?? t.indicators.price;
         const yuzde = t.changePercent;
         fiyatEl.textContent = `${sayiFormatla(fiyat)} ${paraBirimi(item)}`;
         degisimEl.textContent = degisimMetni(yuzde);
@@ -243,6 +243,28 @@ async function aktifPaneliYukle() {
         const kart = kapsayici.querySelector(`.kart[data-symbol="${CSS.escape(item.symbol)}"]`);
         if (kart) kart.querySelector('.fiyat').textContent = 'veri alınamadı';
       });
+    }
+  }
+
+  // Genel bakista kart fiyatlari ust seritle birebir ayni kaynaktan gelsin.
+  if (aktifSekme === 'genel') {
+    try {
+      const quotes = await apiGet(
+        `/api/quote?symbols=${encodeURIComponent(liste.map((l) => l.symbol).join(','))}`
+      );
+      const qmap = {};
+      quotes.forEach((q) => (qmap[q.symbol] = q));
+      liste.forEach((item) => {
+        const kart = kapsayici.querySelector(`.kart[data-symbol="${CSS.escape(item.symbol)}"]`);
+        const q = qmap[item.symbol];
+        if (!kart || !q) return;
+        kart.querySelector('.fiyat').textContent = `${sayiFormatla(q.regularMarketPrice)} ${paraBirimi(item)}`;
+        const degisimEl = kart.querySelector('.degisim');
+        degisimEl.textContent = degisimMetni(q.regularMarketChangePercent);
+        degisimEl.className = `degisim ${degisimSinifi(q.regularMarketChangePercent)}`;
+      });
+    } catch {
+      // serit ayni veriyi gosteriyor; kartlar tahmin fiyatiyla kalir
     }
   }
 }
@@ -280,7 +302,7 @@ async function detayAc(symbol, ad) {
     return;
   }
 
-  const fiyat = t.indicators.price;
+  const fiyat = t.livePrice ?? t.indicators.price;
   const birim = paraBirimi({ symbol });
   document.getElementById('detay-fiyat').innerHTML =
     `Son fiyat: <strong>${sayiFormatla(fiyat)} ${birim}</strong>`;
@@ -481,6 +503,58 @@ aramaSonuclar.addEventListener('click', (e) => {
   detayAc(satir.dataset.symbol, satir.dataset.ad);
 });
 
+/* ---------- Cihazlar arası liste eşitleme ---------- */
+const takipDurum = document.getElementById('takip-durum');
+
+function adBul(symbol) {
+  const b = ARAMA_INDEKSI.find((s) => s.symbol === symbol);
+  return b ? b.ad : symbol.replace('.IS', '');
+}
+
+function listeBaglantisi() {
+  const kodlar = takipListesi.map((t) => t.symbol).join(',');
+  return `${location.origin}${location.pathname}#l=${encodeURIComponent(kodlar)}`;
+}
+
+function listeIceAktar(metin) {
+  const m = String(metin).match(/#l=([^&\s]+)/);
+  const kodlar = m ? decodeURIComponent(m[1]) : String(metin);
+  const semboller = kodlar.split(',').map((s) => s.trim()).filter(Boolean);
+  let eklenen = 0;
+  for (const symbol of semboller) {
+    if (!takipListesi.some((t) => t.symbol === symbol)) {
+      takipListesi.push({ symbol, ad: adBul(symbol) });
+      eklenen++;
+    }
+  }
+  takibiKaydet();
+  return eklenen;
+}
+
+document.getElementById('liste-paylas').addEventListener('click', async () => {
+  if (!takipListesi.length) {
+    takipDurum.textContent = 'Liste boş — önce ☆ yıldızla hisse ekleyin.';
+    return;
+  }
+  const baglanti = listeBaglantisi();
+  try {
+    await navigator.clipboard.writeText(baglanti);
+    takipDurum.textContent =
+      '✅ Bağlantı kopyalandı. WhatsApp veya e-posta ile kendinize gönderin; diğer cihazda açınca liste otomatik yüklenir.';
+  } catch {
+    prompt('Bu bağlantıyı kopyalayın:', baglanti);
+  }
+});
+
+document.getElementById('liste-aktar').addEventListener('click', () => {
+  const metin = prompt('Diğer cihazdan kopyaladığınız bağlantıyı buraya yapıştırın:');
+  if (!metin) return;
+  const eklenen = listeIceAktar(metin);
+  takipDurum.textContent =
+    eklenen > 0 ? `✅ ${eklenen} hisse içe aktarıldı.` : 'Liste zaten güncel.';
+  aktifPaneliYukle();
+});
+
 /* ---------- Olaylar ---------- */
 document.querySelectorAll('.sekme').forEach((btn) => {
   btn.addEventListener('click', () => {
@@ -518,6 +592,14 @@ document.getElementById('detay-arkaplan').addEventListener('click', (e) => {
 });
 
 /* ---------- Başlat ---------- */
+if (location.hash.startsWith('#l=')) {
+  const eklenen = listeIceAktar(location.hash.slice(3));
+  history.replaceState(null, '', location.pathname + location.search);
+  if (eklenen > 0) {
+    document.querySelector('[data-sekme="takip"]').click();
+    takipDurum.textContent = `✅ Bağlantıdan ${eklenen} hisse yüklendi.`;
+  }
+}
 seritGuncelle();
 aktifPaneliYukle();
 setInterval(() => {

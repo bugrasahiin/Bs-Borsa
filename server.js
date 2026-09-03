@@ -204,6 +204,7 @@ async function computePrediction(symbol, ad, haberli = false) {
   let dates;
   let closes;
   let changePercent = null;
+  let livePrice = null;
   if (symbol === GRAM_ALTIN) {
     const seri = await getGramAltinSeries();
     dates = seri.dates;
@@ -211,14 +212,16 @@ async function computePrediction(symbol, ad, haberli = false) {
     const son = closes[closes.length - 1];
     const onceki = closes[closes.length - 2] || son;
     changePercent = ((son - onceki) / onceki) * 100;
+    livePrice = son;
   } else {
     const chart = await getChart(symbol, '6mo');
     dates = chart.dates;
     closes = chart.closes;
     changePercent = chart.meta ? chart.meta.regularMarketChangePercent : null;
+    livePrice = chart.meta ? chart.meta.regularMarketPrice : null;
   }
   const result = analyze(closes);
-  const payload = { symbol, dates, closes, changePercent, ...result };
+  const payload = { symbol, dates, closes, changePercent, livePrice, ...result };
 
   // Dunya haberlerinin tonu karara hafifce yansir (teknik analiz esas kalir).
   if (haberli && !payload.error) {

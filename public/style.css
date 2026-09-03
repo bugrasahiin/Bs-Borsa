@@ -307,6 +307,37 @@ header h1 {
   color: var(--muted);
 }
 
+.takip-araclar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 14px 0 4px;
+}
+
+.takip-araclar button {
+  flex: 1 1 220px;
+  font-size: 17px;
+  font-weight: 700;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--ink);
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(16, 29, 53, 0.05);
+}
+
+.takip-araclar button:active {
+  background: #eef3fb;
+}
+
+.takip-durum {
+  min-height: 20px;
+  margin: 6px 0 0;
+  font-size: 15px;
+  color: var(--muted);
+}
+
 /* ---------- İçerik ---------- */
 main {
   max-width: 1240px;
