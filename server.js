@@ -137,7 +137,13 @@ async function getChart(symbol, range = '6mo') {
   return { symbol, closes, dates, meta: result.meta };
 }
 
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(
+  express.static(path.join(__dirname, 'public'), {
+    setHeaders: (res, filePath) => {
+      if (filePath.endsWith('.html')) res.setHeader('Cache-Control', 'no-store');
+    },
+  })
+);
 
 app.get('/api/quote', async (req, res) => {
   const symbols = (req.query.symbols || '')
