@@ -39,7 +39,7 @@ servis gerekir. En kolayı **Render.com**'un ücretsiz Web Service planıdır.
    - Start Command: `node server.js`
    - Instance Type: **Free**
 4. Deploy'e basın. 1-2 dakika sonra `https://proje-adi.onrender.com`
-   adresinde site yayında olur. Bu adresi annenize göndermeniz yeterli.
+   adresinde site yayında olur. 
 
 Notlar:
 - Ücretsiz plan 15 dakika istek gelmezse uyur; ilk açılış ~30 saniye sürebilir, sonra hızlanır.
