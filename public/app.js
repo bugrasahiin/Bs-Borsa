@@ -419,6 +419,68 @@ function suruklemeKaydir(el) {
 suruklemeKaydir(document.getElementById('ust-serit'));
 suruklemeKaydir(document.querySelector('.sekmeler'));
 
+/* ---------- Arama ---------- */
+const ARAMA_INDEKSI = (() => {
+  const map = new Map();
+  [...SERIT, ...BIST_HISSELERI, ...BIST_TUMU, ...ABD_HISSELERI, ...KRIPTO_PARALAR].forEach((s) => {
+    if (!map.has(s.symbol)) map.set(s.symbol, s);
+  });
+  return [...map.values()];
+})();
+
+const aramaInput = document.getElementById('arama');
+const aramaSonuclar = document.getElementById('arama-sonuclar');
+
+function aramaYap(sorgu) {
+  const q = sorgu.trim().toLocaleLowerCase('tr-TR');
+  if (!q) {
+    aramaSonuclar.classList.add('gizli');
+    aramaSonuclar.innerHTML = '';
+    return;
+  }
+  const qKod = q.replace(/\.is$/, '');
+  const eslesen = [];
+  for (const s of ARAMA_INDEKSI) {
+    const ad = s.ad.toLocaleLowerCase('tr-TR');
+    const kod = s.symbol.toLocaleLowerCase('tr-TR').replace(/\.is$/, '');
+    let oncelik = -1;
+    if (kod.startsWith(qKod)) oncelik = 0;
+    else if (ad.startsWith(q)) oncelik = 1;
+    else if (ad.includes(q) || kod.includes(q)) oncelik = 2;
+    if (oncelik >= 0) eslesen.push({ s, oncelik });
+  }
+  eslesen.sort((a, b) => a.oncelik - b.oncelik);
+  const liste = eslesen.slice(0, 12);
+  aramaSonuclar.innerHTML = liste.length
+    ? liste
+        .map(
+          ({ s }) =>
+            `<button class="arama-satir" data-symbol="${escapeHtml(s.symbol)}" data-ad="${escapeHtml(s.ad)}">
+              <span class="arama-ad">${escapeHtml(s.ad)}</span>
+              <span class="arama-kod">${escapeHtml(s.symbol.replace('.IS', ''))}</span>
+            </button>`
+        )
+        .join('')
+    : '<p class="arama-bos">Sonuç bulunamadı. Farklı bir isim deneyin (örn: THY, altın, Apple).</p>';
+  aramaSonuclar.classList.remove('gizli');
+}
+
+aramaInput.addEventListener('input', (e) => aramaYap(e.target.value));
+aramaInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    aramaInput.value = '';
+    aramaYap('');
+    aramaInput.blur();
+  }
+});
+aramaSonuclar.addEventListener('click', (e) => {
+  const satir = e.target.closest('.arama-satir');
+  if (!satir) return;
+  aramaInput.value = '';
+  aramaYap('');
+  detayAc(satir.dataset.symbol, satir.dataset.ad);
+});
+
 /* ---------- Olaylar ---------- */
 document.querySelectorAll('.sekme').forEach((btn) => {
   btn.addEventListener('click', () => {

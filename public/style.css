@@ -226,9 +226,85 @@ header h1 {
 .sekme:focus-visible,
 .yildiz:focus-visible,
 .kart:focus-visible,
-#detay-kapat:focus-visible {
+#detay-kapat:focus-visible,
+#arama:focus-visible,
+.arama-satir:focus-visible {
   outline: 3px solid #93c5fd;
   outline-offset: 2px;
+}
+
+/* ---------- Arama ---------- */
+.arama-bolumu {
+  max-width: 760px;
+  margin: 18px auto 0;
+  padding: 0 16px;
+}
+
+#arama {
+  width: 100%;
+  box-sizing: border-box;
+  font-size: 18px;
+  padding: 15px 18px;
+  border: 2px solid var(--line);
+  border-radius: 16px;
+  background: #fff;
+  color: var(--ink);
+  box-shadow: 0 2px 10px rgba(16, 29, 53, 0.05);
+}
+
+#arama:focus {
+  border-color: #bcd0f7;
+}
+
+#arama::placeholder {
+  color: var(--muted);
+}
+
+.arama-sonuclar {
+  margin-top: 10px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 14px 34px -12px rgba(16, 29, 53, 0.25);
+}
+
+.arama-satir {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 15px 18px;
+  font-size: 17px;
+  text-align: left;
+  border: none;
+  border-bottom: 1px solid var(--line);
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.arama-satir:last-child {
+  border-bottom: none;
+}
+
+.arama-satir:active {
+  background: #eef3fb;
+}
+
+.arama-kod {
+  font-weight: 800;
+  color: var(--blue);
+  white-space: nowrap;
+}
+
+.arama-bos {
+  margin: 0;
+  padding: 16px 18px;
+  font-size: 16px;
+  color: var(--muted);
 }
 
 /* ---------- İçerik ---------- */
