@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Borsa Takip — Canlı Borsa ve Yapay Zeka Tahminleri</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📈</text></svg>" />
+  <link rel="stylesheet" href="style.css" />
+  <script src="vendor/chart.umd.min.js"></script>
+</head>
+<body>
+  <header>
+    <h1>📈 Borsa Takip</h1>
+    <p class="alt-baslik">Canlı piyasa verileri ve yapay zeka tahminleri</p>
+    <div class="saat-kutusu">Son güncelleme: <span id="son-guncelleme">yükleniyor…</span></div>
+  </header>
+
+  <section id="ust-serit" class="serit" aria-label="Piyasa özeti"></section>
+
+  <nav class="sekmeler" role="tablist">
+    <button class="sekme aktif" data-sekme="genel">🏠 Genel Bakış</button>
+    <button class="sekme" data-sekme="bist">🇹🇷 BIST 100</button>
+    <button class="sekme" data-sekme="tumu">🏭 BIST Tümü</button>
+    <button class="sekme" data-sekme="abd">🇺🇸 ABD Hisseleri</button>
+    <button class="sekme" data-sekme="kripto">₿ Kripto Paralar</button>
+    <button class="sekme" data-sekme="takip">⭐ Takip Listem</button>
+  </nav>
+
+  <main id="icerik">
+    <div class="panel" data-panel="genel">
+      <h2>Piyasaların Genel Durumu</h2>
+      <p class="aciklama">Yeşil = yükseliyor, Kırmızı = düşüyor. Bir karta dokunursanız detayını ve yapay zeka tahminini görürsünüz.</p>
+      <div class="kaynak-kutusu">
+        🌐 <strong>Veri kaynağı: Yahoo Finance.</strong>
+        BIST 100, Borsa İstanbul hisseleri, Amerikan borsası (S&amp;P 500, Dow, Nasdaq),
+        dolar, euro ve altın fiyatlarının tamamı buradan, kimlik/şifre gerektirmeden ve
+        yaklaşık 1 dakikada bir otomatik güncellenerek alınır.
+      </div>
+      <div class="kartlar" id="genel-kartlar"></div>
+    </div>
+    <div class="panel gizli" data-panel="bist">
+      <h2>Borsa İstanbul Hisseleri</h2>
+      <p class="aciklama">Yıldıza dokunarak hisseyi Takip Listem'e ekleyebilirsiniz.</p>
+      <div class="kartlar" id="bist-kartlar"></div>
+    </div>
+    <div class="panel gizli" data-panel="abd">
+      <h2>Amerikan Borsası Hisseleri</h2>
+      <p class="aciklama">Yıldıza dokunarak hisseyi Takip Listem'e ekleyebilirsiniz.</p>
+      <div class="kartlar" id="abd-kartlar"></div>
+    </div>
+    <div class="panel gizli" data-panel="tumu">
+      <h2>Borsa İstanbul — Tüm Hisseler</h2>
+      <p class="aciklama">Borsa İstanbul'da işlem gören tüm hisse senetleri (yaklaşık 480 şirket). Veriler kademeli yüklenir; ilk açılışta birkaç saniye sürebilir.</p>
+      <div class="kartlar" id="tumu-kartlar"></div>
+    </div>
+    <div class="panel gizli" data-panel="kripto">
+      <h2>Kripto Paralar</h2>
+      <p class="aciklama">Piyasa değerine göre en büyük 20 kripto para. Yıldıza dokunarak Takip Listem'e ekleyebilirsiniz.</p>
+      <div class="kartlar" id="kripto-kartlar"></div>
+    </div>
+    <div class="panel gizli" data-panel="takip">
+      <h2>Takip Listem</h2>
+      <p class="aciklama" id="takip-aciklama">Burada sadece takip ettiğiniz hisseler görünür.</p>
+      <div class="kartlar" id="takip-kartlar"></div>
+    </div>
+  </main>
+
+  <div id="detay-arkaplan" class="gizli">
+    <div id="detay-kutu" role="dialog" aria-modal="true">
+      <button id="detay-kapat" aria-label="Kapat">✕ Kapat</button>
+      <h2 id="detay-baslik"></h2>
+      <div id="detay-fiyat"></div>
+      <div class="yz-kutusu">
+        <h3>🤖 Yapay Zeka Tahmini</h3>
+        <div id="detay-yz"></div>
+      </div>
+      <div class="grafik-kutusu"><canvas id="detay-grafik"></canvas></div>
+      <p class="uyari">Bu bilgiler yatırım tavsiyesi değildir. Yapay zeka tahminleri geçmiş verilere dayalı basit analizlerdir ve garanti vermez.</p>
+    </div>
+  </div>
+
+  <footer>
+    <p>Veriler yaklaşık 1 dakikada bir otomatik yenilenir. Kaynak: Yahoo Finance.</p>
+    <p><strong>Uyarı:</strong> Bu site yalnızca bilgi amaçlıdır, yatırım tavsiyesi değildir.</p>
+  </footer>
+
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

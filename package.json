@@ -1,0 +1,12 @@
+{
+  "name": "borsa-takip",
+  "version": "1.0.0",
+  "description": "Basit borsa takip sitesi - canlı piyasa verileri ve yapay zeka tahminleri",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2"
+  }
+}
